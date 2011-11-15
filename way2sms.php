@@ -29,13 +29,53 @@ function w2s_dashboard_widget_content() {
 		// If its a POST submit, send message
 		if ( isset( $_POST['way2sms_recipient'] ) && isset( $_POST['way2sms_message'] ) ) {
 			require 'way2sms-api.php';
-			$result = sendWay2SMS( $way2sms['username'] , $way2sms['password'] , $_POST['way2sms_recipient'] , $_POST['way2sms_message'] );
+			$message = trim( $_POST['way2sms_message'] );
+			$messge_length = strlen( $message );
+			$counter = 1;
+			$part = array();
+			if ( strlen( $message ) > 160 ) { // dont fall for adding header counter first and then sending a few chars in next message if the message is 157-160 chars
+				while ( strlen( $message ) > 0 ) {
+					// This adds a (1) (2) (3) before the message content indicating the order
+					$counter_header = "<$counter> ";
+					// Good to check the length once it gets in two digits
+					$counter_len = strlen( $counter_header );
+					// Only stuff the content it can
+					$part[$counter] = substr( $message, 0, 160 - $counter_len );
+					// remove the extracted part from the message itself
+					$message = str_replace( $part[$counter], '', $message );
+					// append the header counter
+					$part[$counter] = $counter_header . $part[$counter];
+					// increment the counter
+					$counter++;
+				}
+			} else {
+				$part[1] = $message;
+			}
+			/*
+			echo '<pre>';
+			print_r($part);
+			echo '</pre>';
+			*/
+			foreach( $part as $sms ) {
+				$result = sendWay2SMS( $way2sms['username'] , $way2sms['password'] , $_POST['way2sms_recipient'] , $sms );
+			}
+			echo '<div id="message">';
+			echo '<ul>';
+			foreach ( $result as $r ) {
+				if ( $r['result'] == 1 )
+					echo "<li>Message to {$r['phone']} was sent successfully!</li>";
+				else
+					echo "<li>Error sending message to {$r['phone']}. Error has been logged to your error log.</li>";
+					error_log( "way2sms wp plugin error - phone={$r['phone']} result={$r['result']} msg={$r['msg']}" );
+			}
+			echo '</ul>';
+			echo '</div>';
 		}
 ?>
 		<style type="text/css">
 			#way2sms-wp-plugin input[type="text"], #way2sms-wp-plugin textarea {
 				margin-bottom:5px;
-				width:97%;
+				width:99%;
 			}
 			#way2sms-wp-plugin label {
 				margin-bottom:5px;
@@ -43,6 +83,16 @@ function w2s_dashboard_widget_content() {
 			}
 			#way2sms-wp-plugin em {
 				display:block;
+			}
+			#way2sms-wp-plugin #message {
+				background-color:lightYellow;
+				padding:5px 5px 1px;
+				border:solid 1px #E6DB55;
+				border-radius:5px;
+				-moz-border-radius:5px;
+				-webkit-border-radius:5px;
+				-khtml-border-radius:5px;
+				margin-bottom:10px;
 			}
 		</style>
 		<form action="" method="POST">
@@ -60,15 +110,6 @@ function w2s_dashboard_widget_content() {
 	} else {
 		echo '<p>Hover over the title of this widget, click on configure link on the right side and enter your Way2SMS credentials</p>';
 	}
-	echo '<div id="message"><pre>';
-	print_r( $result );
-	foreach ( $result as $r ) {
-		if ( $r['result'] )
-			echo "<li>Message to {$r['phone']} was sent successfully!</li>";
-		else
-			echo "<li>Error sending message to {$r['phone']}</li>";
-	}
-	echo '</pre></div>';
 }
 
 
