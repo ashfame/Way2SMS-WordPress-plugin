@@ -6,4 +6,4 @@ Adds a dashboard widget in WordPress to send a SMS/text message using credential
 Instructions
 -----------------
 
-You will have to edit the plugin file to add your credentials for now. I will make an option panel once I have free time.
+Hover over the title of the widget, click on configure link on the right side and enter your Way2SMS credentials
