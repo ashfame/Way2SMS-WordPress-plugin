@@ -3,6 +3,8 @@ Way2SMS WordPress plugin
 
 Adds a dashboard widget in WordPress to send a SMS/text message using credentials of your Way2SMS account.
 
+![](https://github.com/ashfame/Way2SMS-WordPress-plugin/raw/master/screenshot.png)
+
 Instructions
 -----------------
 
